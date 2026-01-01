@@ -1,0 +1,28 @@
+{
+  "name": "plain-store",
+  "version": "0.1.0",
+  "description": "Plain global state store for vanilla JavaScript and TypeScript",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "state",
+    "store",
+    "vanilla",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsup src/index.ts --watch",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "tsup": "^8.5.1"
+  }
+}
