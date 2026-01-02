@@ -1,14 +1,19 @@
 # plain-store-js
 
-plain-store-js — простой и предсказуемый глобальный store состояния
-для vanilla JavaScript и TypeScript без фреймворков и зависимостей.
+plain-store-js — простой и предсказуемый глобальный store состояния  
+для vanilla JavaScript без фреймворков, сборщиков и зависимостей.
+
+Библиотека предназначена для подключения напрямую в браузере через CDN
+и использования через глобальный объект `PlainStore`.
 
 ---
 
 ## Назначение
 
-plain-store-js предназначен для управления состоянием в небольших проектах,
+plain-store-js используется для управления состоянием в небольших проектах,
 где не нужны React, Vue и сложные state-менеджеры.
+
+Библиотека сознательно минималистична и не скрывает поведение JavaScript.
 
 Особенности:
 
@@ -16,27 +21,48 @@ plain-store-js предназначен для управления состоя
 - без зависимостей
 - без middleware
 - минимальный и явный API
+- глобальный API через `window`
 - предсказуемое поведение
 
 Подходит для:
 
-- обычных HTML / CSS / JS проектов
+- HTML / CSS / JS проектов
+- небольших сайтов
 - виджетов
 - браузерных расширений
 - учебных целей
 
+---
+
+## Установка (CDN / jsDelivr)
+
+Подключите библиотеку напрямую в HTML:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/AsadKing-1/plain-store-js/dist/plain-store.js"></script>
+```
+
+После подключения библиотека доступна глобально:
+
+```js
+PlainStore.createStore
+```
+
+---
+
 ## Быстрый старт
 
-```ts
-import { createStore } from "plain-store";
+```html
+<script src="https://cdn.jsdelivr.net/gh/AsadKing-1/plain-store-js/dist/plain-store.js"></script>
+<script>
+  const store = PlainStore.createStore({ count: 0 });
 
-const store = createStore({ count: 0 });
+  store.subscribe((state) => {
+    console.log(state.count);
+  });
 
-store.subscribe((state) => {
-  console.log(state.count);
-});
-
-store.set({ count: 1 });
+  store.set({ count: 1 });
+</script>
 ```
 
 ---
@@ -45,7 +71,7 @@ store.set({ count: 1 });
 
 Состояние — это обычный объект JavaScript.
 
-```ts
+```js
 {
   count: 0,
   theme: "dark"
@@ -58,23 +84,28 @@ store.set({ count: 1 });
 - не мутирует старое состояние
 - уведомляет всех подписчиков
 
+Важно:
+
+- состояние должно обновляться иммутабельно
+- мутация вложенных объектов может привести к ошибкам
+
 ---
 
 ## API
 
 ---
 
-## createStore(initialState)
+## PlainStore.createStore(initialState)
 
 Создаёт новое глобальное хранилище состояния.
 
-```ts
-const store = createStore({ count: 0 });
+```js
+const store = PlainStore.createStore({ count: 0 });
 ```
 
-initialState — объект с начальным состоянием.
+`initialState` — объект с начальным состоянием.
 
-Метод возвращает объект store с методами управления состоянием.
+Метод возвращает объект `store`.
 
 ---
 
@@ -82,7 +113,7 @@ initialState — объект с начальным состоянием.
 
 Возвращает текущее состояние.
 
-```ts
+```js
 const state = store.getState();
 console.log(state.count);
 ```
@@ -93,25 +124,28 @@ console.log(state.count);
 - прочитать данные вне подписки
 - подготовить новое состояние перед обновлением
 
+Не рекомендуется мутировать объект,
+возвращаемый `getState()`.
+
 ---
 
 ## store.set(partialState)
 
 Частично обновляет состояние.
 
-```ts
+```js
 store.set({ count: 5 });
 ```
 
-Если текущее состояние было:
+Если текущее состояние:
 
-```ts
+```js
 { count: 0, theme: "dark" }
 ```
 
-После обновления станет:
+После обновления:
 
-```ts
+```js
 { count: 5, theme: "dark" }
 ```
 
@@ -128,13 +162,13 @@ store.set({ count: 5 });
 
 Подписывает функцию на изменения состояния.
 
-```ts
+```js
 const unsubscribe = store.subscribe((state) => {
   console.log("Новое состояние:", state);
 });
 ```
 
-listener:
+`listener`:
 
 - вызывается при каждом изменении состояния
 - получает новое состояние аргументом
@@ -145,7 +179,7 @@ listener:
 
 ## Отписка от изменений
 
-```ts
+```js
 unsubscribe();
 ```
 
@@ -158,13 +192,13 @@ unsubscribe();
 
 ## store.select(selector)
 
-Позволяет выбрать часть состояния.
+Позволяет выбрать часть состояния без подписки.
 
-```ts
+```js
 const count = store.select((state) => state.count);
 ```
 
-selector:
+`selector`:
 
 - функция, принимающая состояние
 - возвращает выбранное значение
@@ -175,38 +209,54 @@ selector:
 
 ## Пример с UI (кликер)
 
-```ts
-const store = createStore({ count: 0 });
+```html
+<div>
+  <button id="dec">-</button>
+  <span id="count">0</span>
+  <button id="inc">+</button>
+</div>
 
-const countEl = document.getElementById("count");
-const incBtn = document.getElementById("inc");
-const decBtn = document.getElementById("dec");
+<script src="https://cdn.jsdelivr.net/gh/AsadKing-1/plain-store-js/dist/plain-store.js"></script>
+<script>
+  const store = PlainStore.createStore({ count: 0 });
 
-store.subscribe((state) => {
-  countEl.textContent = state.count;
-});
+  const countEl = document.getElementById("count");
+  const incBtn = document.getElementById("inc");
+  const decBtn = document.getElementById("dec");
 
-incBtn.onclick = () => {
-  store.set({ count: store.getState().count + 1 });
-};
+  store.subscribe((state) => {
+    countEl.textContent = state.count;
+  });
 
-decBtn.onclick = () => {
-  store.set({ count: store.getState().count - 1 });
-};
+  incBtn.onclick = () => {
+    store.set({ count: store.getState().count + 1 });
+  };
+
+  decBtn.onclick = () => {
+    store.set({ count: store.getState().count - 1 });
+  };
+</script>
 ```
 
 ---
 
-## Ограничения
+## Ограничения и осознанные упрощения
 
 plain-store-js не содержит:
 
 - middleware
 - async логики
-- persistence
+- persistence (localStorage и т.п.)
 - devtools
+- оптимизации подписчиков
 
-Библиотека является минимальным ядром для управления состоянием.
+Также важно учитывать:
+
+- все подписчики вызываются при каждом обновлении
+- нет защиты от мутаций вложенных объектов
+- библиотека не предназначена для больших SPA
+
+---
 
 ## Статус проекта
 
